@@ -12,6 +12,7 @@ import remarkMath from 'remark-math';
 
 import { Button } from '@/app/components/ui/button';
 import { Section } from '@/app/components/ui/section';
+import { useState } from 'react';
 
 interface QuantumPageProps {
   tagline: string;
