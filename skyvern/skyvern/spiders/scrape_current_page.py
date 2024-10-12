@@ -4,6 +4,7 @@ from scrapy import Spider, Request
 from scrapy.crawler import CrawlerProcess
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 
 
 class CurrentPageSpider(Spider):
@@ -22,7 +23,7 @@ class CurrentPageSpider(Spider):
         self.csv_writer.writeheader()
 
     def start_requests(self):
-        # Here, we need to manually call parse, as we already have the HTML
+        # Manually call parse, as we already have the HTML
         if self.html_content and self.url:
             yield Request(url=self.url, callback=self.parse_html, dont_filter=True, meta={'html': self.html_content})
 
@@ -48,20 +49,22 @@ def main():
     # Specify the path to your downloaded chromedriver
     chromedriver_path = "/opt/homebrew/bin/chromedriver"
 
-    # Set Chrome options (optional)
+    # Set Chrome options
     chrome_options = Options()
-    chrome_options.add_argument("--headless")
+    # Remove the headless option to see the Chrome window
+    # chrome_options.add_argument("--headless")  # Commenting this line out to see the browser
 
     # Initialize Chrome WebDriver
     driver = webdriver.Chrome(
         executable_path=chromedriver_path, options=chrome_options)
 
     # Open the desired webpage
-    driver.get('https://example.com')
+    driver.get('https://example.com')  # Change this to your desired URL
     time.sleep(3)  # Wait for the page to load
 
     # Get the current URL and HTML content of the page
     current_url = driver.current_url
+    print(f"Current URL: {current_url}")
     html_content = driver.page_source
 
     # Close the browser
