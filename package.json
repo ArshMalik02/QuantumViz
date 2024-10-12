@@ -22,7 +22,11 @@
     "postcss": "8.4.23",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "scrapy": "^0.0.1",
+    "selenium": "^2.20.0",
+    "selenium-webdriver": "^4.25.0",
     "tailwindcss": "3.3.2",
-    "typescript": "5.0.4"
+    "typescript": "5.0.4",
+    "webdriver-manager": "^12.1.9"
   }
 }
