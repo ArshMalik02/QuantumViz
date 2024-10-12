@@ -43,20 +43,22 @@ const QuantumPage: React.FC<QuantumPageProps> = ({ tagline }) => {
           </div>
           <p className="mb-12 text-center text-2xl font-light">{tagline}</p>
 
-          <div className="mb-16 aspect-video w-full overflow-hidden rounded-lg shadow-2xl">
-            <iframe
-              src="https://algassert.com/quirk#circuit=%7B%22cols%22%3A%20%5B%5B%22H%22%2C%201%5D%2C%20%5B%22%E2%80%A2%22%2C%20%22X%22%5D%5D%7D"
-              className="size-full border-0"
-              title="Quantum Circuit Visualizer"
-              allowFullScreen
-            />
-          </div>
-
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
+            className="mb-8"
           >
+            <h2 className="mb-6 font-serif text-3xl font-bold">Quantum Circuit Visualizer</h2>
+            <div className="mb-12 relative h-[calc(100vh-24rem)] w-full rounded-lg overflow-hidden">
+              <iframe
+                src="https://algassert.com/quirk#circuit=%7B%22cols%22%3A%20%5B%5B%22H%22%2C%201%5D%2C%20%5B%22%E2%80%A2%22%2C%20%22X%22%5D%5D%7D"
+                className="absolute inset-0 h-full w-full border-0"
+                title="Quantum Circuit Visualizer"
+                allowFullScreen
+              />
+            </div>
+
             <h2 className="mb-6 font-serif text-3xl font-bold">Python Code Block</h2>
             <div className="mb-12 overflow-hidden rounded-lg border border-white/20 bg-black/30 backdrop-blur-sm">
               <Editor
