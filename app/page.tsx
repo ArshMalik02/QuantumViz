@@ -69,28 +69,28 @@ export default function Home() {
       </header>
       
       {/* Main content */}
-      <main className="flex-grow flex flex-col items-center justify-center z-10 px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-[7rem] font-bold mb-4 bg-gradient-to-r from-pink-500 to-orange-500 text-transparent bg-clip-text">
+      <main className="flex-grow flex flex-col items-center justify-center z-10 px-4 -mt-20">
+        <div className="text-center mb-12">
+          <h1 className="text-7xl sm:text-8xl font-bold mb-4 bg-gradient-to-r from-pink-500 to-orange-500 text-transparent bg-clip-text">
             QuantumViz
           </h1>
-          <p className="text-2xl text-gray-300">
+          <p className="text-2xl sm:text-3xl text-gray-300">
             Your ideas, transformed into quantum circuits
           </p>
         </div>
         
-        <div className="w-full max-w-2xl flex items-center space-x-2">
+        <div className="w-full max-w-2xl flex items-center space-x-2 mt-8">
           <div className="relative flex-grow">
             <Input
               type="text"
               placeholder="Describe your circuit here..."
-              className="w-full bg-gray-800/60 border-gray-700 text-white pl-4 pr-10 py-3 rounded-l-full"
+              className="w-full bg-gray-800/60 border-gray-700 text-white pl-4 pr-10 py-3 rounded-l-full text-lg"
             />
-            <Mic className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" size={20} />
+            <Mic className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" size={24} />
           </div>
-          <Button className="bg-gradient-to-r from-pink-500 to-orange-500 text-white px-6 py-3 rounded-r-full flex items-center space-x-2">
+          <Button className="bg-gradient-to-r from-pink-500 to-orange-500 text-white px-7 py-3 rounded-r-full flex items-center space-x-2 text-lg">
             <span>Generate</span>
-            <Sparkles size={20} />
+            <Sparkles size={24} />
           </Button>
         </div>
       </main>
