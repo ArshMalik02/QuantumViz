@@ -1,116 +1,99 @@
-import Image from 'next/image'
-import Link from 'next/link'
+import Image from "next/image"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Mic, Sparkles } from "lucide-react"
+import logo from "@/public/logo.png"
+import leftNet from "@/public/left_net.png"
+import rightNet from "@/public/right_net.png"
+import leftLight from "@/public/left_light.png"
+import rightLight from "@/public/right_light.png"
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <Link href="/api/python">
-            <code className="font-mono font-bold">api/index.py</code>
-          </Link>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px]">
+    <div className="min-h-screen bg-black text-white flex flex-col relative overflow-hidden">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-pink-600/20 via-transparent to-orange-600/20" />
+      
+      {/* Left network and light images */}
+      <div className="absolute left-0 bottom-0 w-1/4 h-1/2">
         <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
+          src={leftNet}
+          alt="Left network"
+          layout="fill"
+          objectFit="contain"
+          objectPosition="left bottom"
+          quality={100}
+          priority
+        />
+        <Image
+          src={leftLight}
+          alt="Left light"
+          layout="fill"
+          objectFit="contain"
+          objectPosition="left bottom"
+          quality={100}
           priority
         />
       </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+      
+      {/* Right network and light images */}
+      <div className="absolute right-0 top-0 w-1/4 h-1/2">
+        <Image
+          src={rightNet}
+          alt="Right network"
+          layout="fill"
+          objectFit="contain"
+          objectPosition="right top"
+          quality={100}
+          priority
+        />
+        <Image
+          src={rightLight}
+          alt="Right light"
+          layout="fill"
+          objectFit="contain"
+          objectPosition="right top"
+          quality={100}
+          priority
+        />
       </div>
-    </main>
+      
+      {/* Header */}
+      <header className="flex items-center p-8 z-10">
+        <Image
+          src={logo}
+          alt="QuantumViz Logo"
+          width={40}
+          height={40}
+        />
+      </header>
+      
+      {/* Main content */}
+      <main className="flex-grow flex flex-col items-center justify-center z-10 px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-[7rem] font-bold mb-4 bg-gradient-to-r from-pink-500 to-orange-500 text-transparent bg-clip-text">
+            QuantumViz
+          </h1>
+          <p className="text-2xl text-gray-300">
+            Your ideas, transformed into quantum circuits
+          </p>
+        </div>
+        
+        <div className="w-full max-w-2xl flex items-center space-x-2">
+          <div className="relative flex-grow">
+            <Input
+              type="text"
+              placeholder="Describe your circuit here..."
+              className="w-full bg-gray-800/60 border-gray-700 text-white pl-4 pr-10 py-3 rounded-l-full"
+            />
+            <Mic className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" size={20} />
+          </div>
+          <Button className="bg-gradient-to-r from-pink-500 to-orange-500 text-white px-6 py-3 rounded-r-full flex items-center space-x-2">
+            <span>Generate</span>
+            <Sparkles size={20} />
+          </Button>
+        </div>
+      </main>
+    </div>
   )
 }
