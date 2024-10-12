@@ -10,8 +10,8 @@ import Editor from 'react-simple-code-editor';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 
-import { Button } from '@/app/components/ui/button';
-import { Section } from '@/app/components/ui/section';
+import { Button } from '@/components/ui/button';
+import { Section } from '@/components/section';
 import { useState } from 'react';
 
 interface QuantumPageProps {
