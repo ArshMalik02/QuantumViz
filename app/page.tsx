@@ -15,6 +15,7 @@ import CodeSnippet from "@/app/components/CodeSnippet";
 import { ExpandableTextareaWithButtons } from "@/app/components/ExpandableTextareaWithButtons";
 import QuantumVisualization from "./components/QuantumVisualization";
 import { QuirkyChat } from "@/app/components/QuirkyChat";
+import { ImageInputWithButtons } from "@/app/components/ImageInput";
 
 export default function Home() {
   const [apiResponse, setApiResponse] = useState<JSON | null>(null);
@@ -300,6 +301,7 @@ export default function Home() {
             onChange={(e) => setTranscription(e.target.value)}
           />
         )}
+        <ImageInputWithButtons/>
       </main>
 
       {/* Quirky Chat */}
