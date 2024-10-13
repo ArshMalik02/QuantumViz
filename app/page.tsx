@@ -2,13 +2,13 @@
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Mic, Sparkles } from "lucide-react";
+import { Mic, Sparkles, Square } from "lucide-react";
 import logo from "@/public/logo.png";
 import leftNet from "@/public/left_net.png";
 import rightNet from "@/public/right_net.png";
 import leftLight from "@/public/left_light.png";
 import rightLight from "@/public/right_light.png";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import QuantumCircuit from "@/app/components/QuantumCircuit";
 import CodeSnippet from "@/app/components/CodeSnippet";
 
@@ -19,6 +19,31 @@ import { QuirkyChat } from "@/app/components/QuirkyChat";
 export default function Home() {
   const [apiResponse, setApiResponse] = useState<JSON | null>(null);
   const [codeApiResponse, setCodeApiResponse] = useState<JSON | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioData, setAudioData] = useState<Blob | null>(null);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [transcription, setTranscription] = useState("");
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isRecording) {
+      interval = setInterval(() => {
+        setRecordingTime((prevTime) => {
+          if (prevTime >= 15) {
+            stopRecording();
+            return 15;
+          }
+          return prevTime + 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isRecording]);
   const handleGenerate = async (input: string) => {
     try {
       const response = await fetch('http://localhost:8080/process-prompt', {
@@ -51,6 +76,140 @@ export default function Home() {
       setApiResponse('An error occurred while processing your request.');
     }
   };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          setAudioChunks(chunks => [...chunks, event.data]);
+        }
+      };
+
+      mediaRecorder.start(1000); // Collect data every second
+      setIsRecording(true);
+      setRecordingTime(0);
+      visualizeAudio(stream);
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    }
+  };
+
+  const visualizeAudio = (stream: MediaStream) => {
+    const audioContext = new AudioContext();
+    const source = audioContext.createMediaStreamSource(stream);
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 256;
+    source.connect(analyser);
+
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const canvasCtx = canvas.getContext('2d');
+    if (!canvasCtx) return;
+
+    const draw = () => {
+      animationFrameRef.current = requestAnimationFrame(draw);
+      analyser.getByteTimeDomainData(dataArray);
+
+      canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+      canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+      canvasCtx.lineWidth = 2;
+      canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
+      canvasCtx.beginPath();
+
+      const sliceWidth = canvas.width * 1.0 / bufferLength;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = v * canvas.height / 2;
+
+        if (i === 0) {
+          canvasCtx.moveTo(x, y);
+        } else {
+          canvasCtx.lineTo(x, y);
+        }
+
+        x += sliceWidth;
+      }
+
+      canvasCtx.lineTo(canvas.width, canvas.height / 2);
+      canvasCtx.stroke();
+    };
+
+    draw();
+  };
+
+  const transcribeAudio = async () => {
+    if (audioChunks.length === 0) {
+      console.error('No audio data available');
+      return;
+    }
+
+    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+    console.log('Audio blob size:', audioBlob.size);
+
+    // Add this: Create an audio element and play the recorded audio
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+    audio.play();
+
+    const reader = new FileReader();
+    reader.readAsDataURL(audioBlob);
+    reader.onloadend = async () => {
+      const base64Audio = reader.result as string;
+      const base64Data = base64Audio.split(',')[1];
+
+      console.log('Base64 audio data length:', base64Data.length);
+
+      try {
+        const response = await fetch('http://localhost:8080/transcribe-audio', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ audio_data: base64Data }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Network response was not ok: ${response.status} ${response.statusText}. ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('Transcription response:', data);
+        setTranscription(data.transcription);
+      } catch (error: unknown) {
+        console.error('Error transcribing audio:', error);
+        setTranscription(`An error occurred while transcribing the audio: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    };
+  };
+
+  // Call transcribeAudio after stopping the recording
+  useEffect(() => {
+    if (!isRecording && audioChunks.length > 0) {
+      transcribeAudio();
+    }
+  }, [isRecording, audioChunks]);
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col relative overflow-hidden">
@@ -116,13 +275,31 @@ export default function Home() {
             Your ideas, transformed into quantum circuits
           </p>
         </div>
-        <ExpandableTextareaWithButtons
-          placeholder="Describe your circuit here..."
-          onGenerate={handleGenerate}
-          onMic={() => {
-            console.log("Mic button clicked");
-          }}
-        />
+        {isRecording ? (
+          <div className="w-full max-w-2xl">
+            <canvas ref={canvasRef} className="w-full h-24 bg-gray-800 rounded-lg mb-4" />
+            <div className="flex justify-between items-center">
+              <div className="relative w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                <div 
+                  className="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-1000 ease-linear"
+                  style={{ width: `${(recordingTime / 15) * 100}%` }}
+                />
+              </div>
+              <p className="ml-4 text-lg">{recordingTime}s / 15s</p>
+            </div>
+            <Button onClick={stopRecording} variant="destructive" className="mt-4 w-full">
+              <Square className="mr-2 h-4 w-4" /> Stop Recording
+            </Button>
+          </div>
+        ) : (
+          <ExpandableTextareaWithButtons
+            placeholder="Describe your circuit here..."
+            onGenerate={handleGenerate}
+            onMic={startRecording}
+            value={transcription}
+            onChange={(e) => setTranscription(e.target.value)}
+          />
+        )}
       </main>
 
       {/* Quirky Chat */}
