@@ -255,15 +255,40 @@ export default function Home() {
             Your ideas, transformed into quantum circuits
           </p>
         </div>
-        
-        <div className="w-full max-w-2xl flex items-center space-x-2">
-          <div className="relative flex-grow">
-            <Input
-              type="text"
-              placeholder="Describe your circuit here..."
-              className="w-full bg-gray-800/60 border-gray-700 text-white pl-4 pr-10 py-3 rounded-l-full"
-            />
-            <Mic className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" size={20} />
+        {isRecording ? (
+          <div className="w-full max-w-2xl">
+            {/* <canvas ref={canvasRef} className="w-full h-24 bg-gray-800 rounded-lg mb-4" /> */}
+            <div className="flex justify-between items-center">
+              <div className="relative w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                <div 
+                  className="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-1000 ease-linear"
+                  style={{ width: `${(recordingTime / 15) * 100}%` }}
+                />
+              </div>
+              <p className="ml-4 text-lg">{recordingTime}s / 15s</p>
+            </div>
+            <Button onClick={stopRecording} variant="destructive" className="mt-4 w-full">
+              <Square className="mr-2 h-4 w-4" /> Stop Recording
+            </Button>
+          </div>
+        ) : (
+          <ExpandableTextareaWithButtons
+            placeholder="Describe your circuit here..."
+            onGenerate={handleGenerate}
+            onMic={startRecording}
+            value={transcription}
+            onChange={(e) => setTranscription(e.target.value)}
+          />
+        )}
+      </main>
+
+      {/* Quirky Chat */}
+      <QuirkyChat />
+
+      {apiResponse && (
+        <section id="quantum-circuit" className="w-full py-16 z-10">
+          <div className="container mx-auto">
+            <QuantumCircuit circuitEmbedUrl={apiResponse} />
           </div>
         </section>
       )}

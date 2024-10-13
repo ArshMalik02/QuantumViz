@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { UserCircleIcon } from '@heroicons/react/24/solid';
 import { LoadingDots } from './LoadingDots';
+import { Mic, X, StopCircle } from "lucide-react";
 
 interface Message {
   text: string;
@@ -21,7 +22,12 @@ export function QuirkyChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [recordingTime, setRecordingTime] = useState(0);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -63,6 +69,80 @@ export function QuirkyChat() {
       setIsLoading(false);
     }
   };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          setAudioChunks(chunks => [...chunks, event.data]);
+        }
+      };
+
+      mediaRecorder.start(1000);
+      setIsRecording(true);
+      setRecordingTime(0);
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingTime(prevTime => {
+          if (prevTime >= 15) {
+            stopRecording();
+            return 15;
+          }
+          return prevTime + 1;
+        });
+      }, 1000);
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+      }
+    }
+  };
+
+  const transcribeAudio = async () => {
+    if (audioChunks.length === 0) return;
+
+    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+    const reader = new FileReader();
+    reader.readAsDataURL(audioBlob);
+    reader.onloadend = async () => {
+      const base64Audio = reader.result as string;
+      const base64Data = base64Audio.split(',')[1];
+
+      try {
+        const response = await fetch('http://localhost:8080/chatbot-transcribe-audio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ audio_file: base64Data }),
+        });
+
+        if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
+
+        const data = await response.json();
+        setInputMessage(data.transcription);
+      } catch (error) {
+        console.error('Error transcribing audio:', error);
+      }
+    };
+  };
+
+  useEffect(() => {
+    if (!isRecording && audioChunks.length > 0) {
+      transcribeAudio();
+      setAudioChunks([]);
+      setRecordingTime(0);
+    }
+  }, [isRecording, audioChunks]);
 
   return (
     <div className={cn(
@@ -168,16 +248,42 @@ export function QuirkyChat() {
             )}
           </div>
           <div className="p-4 border-t border-gray-700">
-            <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex space-x-2">
-              <Input
-                type="text"
-                placeholder="Type your message..."
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                className="flex-grow"
-              />
-              <Button type="submit">Send</Button>
-            </form>
+            {isRecording ? (
+              <div className="flex flex-col items-center space-y-4 p-4 bg-orange-100 rounded-lg">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-pink-300 rounded-full animate-ping opacity-75"></div>
+                  <div className="relative bg-pink-500 rounded-full p-4">
+                    <Mic className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+                <p className="text-black font-medium">Speech-to-Speech</p>
+                <p className="text-black">{recordingTime} / 15 seconds</p>
+                <div className="flex space-x-2">
+                  <Button size="sm" variant="ghost" className="bg-white/20" onClick={stopRecording}>
+                    <StopCircle className="h-4 w-4 mr-2" />
+                    Stop
+                  </Button>
+                  <Button size="sm" variant="ghost" className="bg-white/20" onClick={() => setIsRecording(false)}>
+                    <X className="h-4 w-4" />
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex space-x-2">
+                <Input
+                  type="text"
+                  placeholder="Type your message..."
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  className="flex-grow"
+                />
+                <Button type="submit">Send</Button>
+                <Button type="button" onClick={startRecording}>
+                  <Mic className="h-4 w-4" />
+                </Button>
+              </form>
+            )}
           </div>
         </div>
       )}
