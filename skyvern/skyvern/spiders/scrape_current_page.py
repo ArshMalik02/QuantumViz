@@ -47,6 +47,64 @@ def scroll_and_screenshot(driver, scroll_height, screenshot_path):
         print(f"Error while scrolling and taking screenshot: {e}")
 
 
+def upload_screenshot_and_generate(driver, screenshot_path):
+    try:
+        # Navigate to localhost:3000
+        driver.get('http://localhost:3000')
+        time.sleep(3)  # Wait for the page to load
+
+        # Locate the "Select Image" button using XPath for the span with the text 'Select Image'
+        try:
+            # Wait until the button with the <span>Select Image</span> is visible
+            file_input = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located(
+                    (By.XPATH, "//button[span[text()='Select Image']]"))
+            )
+
+            # Click the "Select Image" button
+            file_input.click()
+            print("Successfully clicked 'Select Image' button.")
+
+        except Exception as e:
+            print(
+                f"Error while interacting with the 'Select Image' button: {e}")
+
+        # Upload the screenshot
+        file_input.send_keys(os.path.abspath(screenshot_path))
+        print(f"Uploaded screenshot: {screenshot_path}")
+
+        try:
+            # Wait for the button to be present
+            generate_button = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located(
+                    (By.XPATH, "//button[span[text()='Generate']]"))
+            )
+
+            # Scroll into view if necessary
+            driver.execute_script(
+                "arguments[0].scrollIntoView();", generate_button)
+
+            # Ensure the button is clickable
+            generate_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, "//button[span[text()='Generate']]"))
+            )
+
+            # Use JavaScript to force-click the button
+            driver.execute_script("arguments[0].click();", generate_button)
+
+            print("Successfully clicked 'Generate' button.")
+
+        except Exception as e:
+            print(f"Error while interacting with the 'Generate' button: {e}")
+
+        # Wait for some result (you can modify this depending on the page behavior)
+        time.sleep(5)
+
+    except Exception as e:
+        print(f"Error while interacting with localhost:3000: {e}")
+
+
 class GoogleSearchSpider(Spider):
     name = "google_search"
 
@@ -204,7 +262,11 @@ class GoogleSearchSpider(Spider):
             # image_xpath = "//img[@alt='example_image']"
             # Scroll by 1000 pixels and take a screenshot
             # Scroll down by 1000px and save screenshot
-            scroll_and_screenshot(driver, 1000, "screenshot1.png")
+            screenshot_path = "screenshot1.png"
+            scroll_and_screenshot(driver, 1000, screenshot_path)
+
+            # Interact with localhost to upload screenshot and click generate
+            upload_screenshot_and_generate(driver, screenshot_path)
 
         except Exception as e:
             print(f"Error: {e}")
