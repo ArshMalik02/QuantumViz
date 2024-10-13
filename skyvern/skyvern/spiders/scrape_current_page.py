@@ -9,22 +9,45 @@ import requests
 from twisted.internet import reactor, defer
 
 
+def split_html_into_chunks(html_content, max_chunk_size=10000):
+    # Split the HTML into chunks, making sure each chunk is below the token limit
+    chunks = []
+    current_chunk = ""
+
+    for line in html_content.splitlines():
+        if len(current_chunk) + len(line) > max_chunk_size:
+            chunks.append(current_chunk)
+            current_chunk = line
+        else:
+            current_chunk += line + "\n"
+
+    if current_chunk:
+        chunks.append(current_chunk)
+
+    return chunks
+
+
 class GoogleSearchSpider(Spider):
     name = "google_search"
 
     def __init__(self, html_content=None, *args, **kwargs):
         super(GoogleSearchSpider, self).__init__(*args, **kwargs)
         self.html_content = html_content
+        self.html_chunks = split_html_into_chunks(
+            self.html_content)  # Split HTML into chunks
+        self.chunk_index = 0  # Start at the first chunk
 
     def start_requests(self):
-        # GPT API call to find search bar XPath
-        gpt_api_url = "https://api.openai.com/v1/completions"
-        API_KEY = "sk-M5ioPhHO_bD0pw0YKmbHF840_l9RqGF0TSczkLNK8bT3BlbkFJ-fzq8Ch64ibRv5-wGD1TfG9794SXS9lnaXProgzp8A"
+        # Start by sending the first chunk of HTML
+        if self.chunk_index < len(self.html_chunks):
+            yield from self.send_chunk_to_gpt(self.html_chunks[self.chunk_index])
 
-        prompt = (
-            f"Given the following HTML content:\n\n{self.html_content}\n\n"
-            f"Please provide the XPath to the search bar in this HTML structure."
-        )
+    def send_chunk_to_gpt(self, html_chunk):
+        # GPT API call to find search bar XPath
+        gpt_api_url = "https://api.openai.com/v1/chat/completions"
+        API_KEY = "sk-BNdvCRikKICPEExsB2CPmalokbd3KsamRsr2IsUTNqT3BlbkFJr6M1SBUtQjokSAgG8RGjaqjbHdkX0twdsRxEuxNxEA"
+
+        prompt = f"Here is part {self.chunk_index + 1} of the HTML content:\n\n{html_chunk}\n\nThe search bar input field is bound by <textarea class='gLFyf'> in this HTML structure. Please provide the XPath to the search bar in this part of the HTML structure if the search bar can be found in this chunk of HTML. If it is not found, wait for the next chunk of HTML to be provided."
 
         headers = {
             'Content-Type': 'application/json',
@@ -33,24 +56,41 @@ class GoogleSearchSpider(Spider):
 
         data = {
             "model": "gpt-3.5-turbo",
-            "prompt": prompt,
+            "messages": [{"role": "user", "content": prompt}],
             "max_tokens": 100,
         }
 
-        print("asking GPT... ")
         response = requests.post(gpt_api_url, headers=headers, json=data)
+
+        # Check for errors in the response
+        if response.status_code != 200:
+            print(f"Error {response.status_code}: {response.text}")
+            return
+
         gpt_response = response.json()
 
+        # Check if 'choices' exists in the GPT response
+        if 'choices' not in gpt_response:
+            print(f"Unexpected response format: {gpt_response}")
+            return
+
         # Extract the XPath from the GPT response
-        xpath_search_bar = gpt_response["choices"][0]["text"].strip()
-        print(f"XPath provided by GPT: {xpath_search_bar}")
+        xpath_search_bar = gpt_response["choices"][0]["message"]["content"].strip(
+        )
+        print(
+            f"XPath for chunk {self.chunk_index + 1} provided by GPT: {xpath_search_bar}")
 
-        # Use the provided XPath to input 'arxiv.com' into the search bar
-        search_bar_xpath = xpath_search_bar
-        google_search_url = "https://www.google.com"
-
-        # Call input function to input field at url and xpath
-        yield Request(url=google_search_url, callback=self.input_search_term, meta={'xpath': search_bar_xpath})
+        # Check if we found the search bar
+        if "search bar" in xpath_search_bar.lower():
+            print(f"Search bar found: {xpath_search_bar}")
+            google_search_url = "https://www.google.com"
+            yield Request(url=google_search_url, callback=self.input_search_term, meta={'xpath': xpath_search_bar})
+        else:
+            # Move to the next chunk if the search bar isn't found
+            self.chunk_index += 1
+            if self.chunk_index < len(self.html_chunks):
+                # Recursively call the next chunk
+                yield from self.send_chunk_to_gpt(self.html_chunks[self.chunk_index])
 
     def input_search_term(self, response):
         xpath_search_bar = response.meta['xpath']
