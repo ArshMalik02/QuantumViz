@@ -10,12 +10,15 @@ import leftLight from "@/public/left_light.png";
 import rightLight from "@/public/right_light.png";
 import { useState } from "react";
 import QuantumCircuit from "@/app/components/QuantumCircuit";
+import CodeSnippet from "@/app/components/CodeSnippet";
+
 import { ExpandableTextareaWithButtons } from "@/app/components/ExpandableTextareaWithButtons";
+import QuantumVisualization from "./components/QuantumVisualization";
 import { QuirkyChat } from "@/app/components/QuirkyChat";
 
 export default function Home() {
-  const [apiResponse, setApiResponse] = useState<string | null>(null);
-
+  const [apiResponse, setApiResponse] = useState<JSON | null>(null);
+  const [codeApiResponse, setCodeApiResponse] = useState<JSON | null>(null);
   const handleGenerate = async (input: string) => {
     try {
       const response = await fetch('http://localhost:8080/process-prompt', {
@@ -23,14 +26,26 @@ export default function Home() {
         headers: { 
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ user_prompt: input }),
+        body: JSON.stringify({ user_input: input }),
+      });
+      console.log('getting code');
+      const codeResponse = await fetch('http://localhost:8080/get_qiskit_code', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_input: input }),
       });
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
       const data = await response.json();
       console.log(data);
+      console.log('setting api response');
       setApiResponse(data);
+      const codeData = await codeResponse.json();
+      console.log(codeData);
+      setCodeApiResponse(codeData);
     } catch (error) {
       console.error('Error:', error);
       setApiResponse('An error occurred while processing your request.');
@@ -94,7 +109,7 @@ export default function Home() {
       {/* Main content */}
       <main className="flex-grow flex flex-col items-center justify-center z-10 px-4 -mt-20">
         <div className="text-center mb-12">
-          <h1 className="mb-2 text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold">
+          <h1 className="mb-2 text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold bg-gradient-to-r from-pink-500 to-orange-500 text-transparent bg-clip-text">
             QuantumViz
           </h1>
           <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-300">
@@ -119,6 +134,12 @@ export default function Home() {
             <QuantumCircuit circuitEmbedUrl={apiResponse} />
           </div>
         </section>
+      )}
+      {codeApiResponse && (
+        <CodeSnippet code={codeApiResponse.code} />
+      )}
+      {codeApiResponse && (
+        <QuantumVisualization code={codeApiResponse.code} htmlFiles={codeApiResponse.html_files} />
       )}
     </div>
   );

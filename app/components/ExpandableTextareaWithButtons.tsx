@@ -48,7 +48,7 @@ export function ExpandableTextareaWithButtons({
       const response = await fetch('http://localhost:8080/process-prompt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_prompt: value }),
+        body: JSON.stringify({ user_input: value }),
       });
       if (!response.ok) {
         throw new Error('Network response was not ok');
