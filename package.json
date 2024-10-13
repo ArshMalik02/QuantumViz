@@ -34,15 +34,15 @@
     "prism-react-renderer": "^2.4.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "scrapy": "^0.0.1",
-    "selenium": "^2.20.0",
-    "selenium-webdriver": "^4.25.0",
     "react-markdown": "^9.0.1",
     "react-simple-code-editor": "^0.14.1",
     "react-syntax-highlighter": "^15.5.0",
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.0",
     "remark-math": "^6.0.0",
+    "scrapy": "^0.0.1",
+    "selenium": "^2.20.0",
+    "selenium-webdriver": "^4.25.0",
     "tailwind-merge": "^2.5.3",
     "tailwindcss": "3.3.2",
     "tailwindcss-animate": "^1.0.7",
@@ -50,6 +50,7 @@
     "webdriver-manager": "^12.1.9"
   },
   "devDependencies": {
-    "@shadcn/ui": "^0.0.4"
+    "@shadcn/ui": "^0.0.4",
+    "pnpm": "^9.12.1"
   }
 }

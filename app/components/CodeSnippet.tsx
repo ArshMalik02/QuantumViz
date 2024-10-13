@@ -46,7 +46,7 @@ export default function CodeSnippet({ code }: CodeSnippetProps) {
   }, [code]);
 
   return (
-    <Card className="bg-gray-900 text-white w-full max-w-2xl mx-auto">
+    <Card className="bg-gray-900 text-white w-full max-w-2xl mx-auto mr-24">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">python</CardTitle>
         <Button
@@ -63,7 +63,11 @@ export default function CodeSnippet({ code }: CodeSnippetProps) {
           <SyntaxHighlighter
             language="python"
             style={theme}
-            customStyle={{ padding: "1rem", fontSize: "0.875rem" }}
+            customStyle={{
+              margin: 0,
+              padding: '1rem',
+              background: 'transparent',
+            }}
           >
             {code}
           </SyntaxHighlighter>

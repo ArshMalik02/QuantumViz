@@ -312,11 +312,13 @@ export default function Home() {
           </div>
         </section>
       )}
-      {codeApiResponse && (
+      {/* {codeApiResponse && (
         <CodeSnippet code={codeApiResponse.code} />
-      )}
+      )} */}
       {codeApiResponse && (
-        <QuantumVisualization code={codeApiResponse.code} htmlFiles={codeApiResponse.html_files} />
+        <div className="mr-12">
+          <QuantumVisualization code={codeApiResponse.code} htmlFiles={codeApiResponse.html_files} />
+        </div>
       )}
     </div>
   );
