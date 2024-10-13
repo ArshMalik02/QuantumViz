@@ -21,7 +21,7 @@ export default function QuantumCircuit({ circuitEmbedUrl }: QuantumCircuitProps)
   }
 
   return (
-    <Card className="w-full max-w-6xl mx-auto bg-gray-900 text-white">
+    <Card className="w-full max-w-7xl mx-auto bg-gray-900 text-white">
       <CardHeader>
         <CardTitle className="text-2xl">Edit Your Quantum Circuit</CardTitle>
         <p className="text-gray-400">Now what you were imagining? Make edits to the circuit below.</p>
