@@ -8,9 +8,10 @@ from selenium.webdriver.chrome.options import Options
 import requests
 from twisted.internet import reactor, defer
 
+# Function to split HTML into chunks
+
 
 def split_html_into_chunks(html_content, max_chunk_size=10000):
-    # Split the HTML into chunks, making sure each chunk is below the token limit
     chunks = []
     current_chunk = ""
 
@@ -33,9 +34,9 @@ class GoogleSearchSpider(Spider):
     def __init__(self, html_content=None, *args, **kwargs):
         super(GoogleSearchSpider, self).__init__(*args, **kwargs)
         self.html_content = html_content
-        self.html_chunks = split_html_into_chunks(
-            self.html_content)  # Split HTML into chunks
-        self.chunk_index = 0  # Start at the first chunk
+        self.html_chunks = split_html_into_chunks(self.html_content)
+        self.chunk_index = 0
+        self.search_bar_xpath = None  # Keep track of the search bar's XPath
 
     def start_requests(self):
         # Start by sending the first chunk of HTML
@@ -47,7 +48,10 @@ class GoogleSearchSpider(Spider):
         gpt_api_url = "https://api.openai.com/v1/chat/completions"
         API_KEY = "sk-BNdvCRikKICPEExsB2CPmalokbd3KsamRsr2IsUTNqT3BlbkFJr6M1SBUtQjokSAgG8RGjaqjbHdkX0twdsRxEuxNxEA"
 
-        prompt = f"Here is part {self.chunk_index + 1} of the HTML content:\n\n{html_chunk}\n\nThe search bar input field is bound by <textarea class='gLFyf'> in this HTML structure. Please provide the XPath to the search bar in this part of the HTML structure if the search bar can be found in this chunk of HTML. If it is not found, wait for the next chunk of HTML to be provided."
+        # Prompt with guidance that the search bar is inside a <textarea> with class 'gLFyf'
+        prompt = f"Here is part {self.chunk_index + 1} of the HTML content:\n\n{html_chunk}\n\n" \
+                 f"The search bar input field is bound by <textarea class='gLFyf'> in this HTML structure. " \
+                 f"Please provide the raw XPath to the search bar (without explanations) in this part of the HTML structure."
 
         headers = {
             'Content-Type': 'application/json',
@@ -74,15 +78,21 @@ class GoogleSearchSpider(Spider):
             print(f"Unexpected response format: {gpt_response}")
             return
 
-        # Extract the XPath from the GPT response
+        # Extract the raw XPath from the GPT response, removing extra text
         xpath_search_bar = gpt_response["choices"][0]["message"]["content"].strip(
         )
+
+        # Ensure we only get the actual XPath by checking for any markdown or explanation
+        if "```" in xpath_search_bar:
+            xpath_search_bar = xpath_search_bar.split("```")[1].strip()
+
         print(
             f"XPath for chunk {self.chunk_index + 1} provided by GPT: {xpath_search_bar}")
 
-        # Check if we found the search bar
-        if "search bar" in xpath_search_bar.lower():
+        # Check if we found the search bar by validating the XPath format
+        if xpath_search_bar.startswith("//"):
             print(f"Search bar found: {xpath_search_bar}")
+            self.search_bar_xpath = xpath_search_bar  # Save the valid XPath
             google_search_url = "https://www.google.com"
             yield Request(url=google_search_url, callback=self.input_search_term, meta={'xpath': xpath_search_bar})
         else:
@@ -91,16 +101,44 @@ class GoogleSearchSpider(Spider):
             if self.chunk_index < len(self.html_chunks):
                 # Recursively call the next chunk
                 yield from self.send_chunk_to_gpt(self.html_chunks[self.chunk_index])
+            else:
+                # Handle case when search bar is not found
+                print("Search bar was not found in any of the HTML chunks.")
+                self.handle_search_bar_not_found()
+
+    def handle_search_bar_not_found(self):
+        # Logic to handle when the search bar is not found after all chunks
+        print("Handling case where search bar was not found. You can notify the user or take other actions.")
+        # You can raise an exception, notify a user, or log additional details here.
 
     def input_search_term(self, response):
+        # Get the search bar XPath from the GPT response
         xpath_search_bar = response.meta['xpath']
 
-        # Now input the 'arxiv.com' value in the search bar
-        yield {
-            "action": "input",
-            "xpath": xpath_search_bar,
-            "value": "arxiv.com"
-        }
+        # Set up Selenium WebDriver to open Google and input 'arxiv.com'
+        chrome_options = Options()
+        # Maximize window for visibility
+        chrome_options.add_argument("--start-maximized")
+        driver = webdriver.Chrome(options=chrome_options)
+
+        # Open Google
+        driver.get('https://www.google.com')
+        time.sleep(2)  # Give the page some time to load
+
+        # Find the search bar using the XPath provided by GPT
+        search_bar = driver.find_element_by_xpath(xpath_search_bar)
+
+        # Input the search term 'arxiv.com'
+        search_bar.send_keys("arxiv.com")
+        time.sleep(1)  # Small delay to see the input being typed
+
+        # Submit the form (simulate hitting 'Enter')
+        search_bar.submit()
+
+        # Wait to observe the result before closing
+        time.sleep(10)  # Wait for 10 seconds so you can see the result
+
+        # Close the browser manually later or after verification
 
 
 class CurrentPageSpider(Spider):
