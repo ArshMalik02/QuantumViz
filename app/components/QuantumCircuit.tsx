@@ -23,7 +23,7 @@ export default function QuantumCircuit({ circuitEmbedUrl }: QuantumCircuitProps)
   return (
     <Card className="w-full max-w-6xl mx-auto bg-gray-900 text-white">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">Edit Your Quantum Circuit</CardTitle>
+        <CardTitle className="text-2xl">Edit Your Quantum Circuit</CardTitle>
         <p className="text-gray-400">Now what you were imagining? Make edits to the circuit below.</p>
       </CardHeader>
       <CardContent>
@@ -56,8 +56,12 @@ export default function QuantumCircuit({ circuitEmbedUrl }: QuantumCircuitProps)
             </div>
           )}
         </div>
-        <div className="flex justify-end">
-          <Button onClick={handleRegenerate} variant="secondary">
+        <div className="flex justify-start">
+          <Button 
+            onClick={handleRegenerate} 
+            variant="outline" 
+            className="border-white bg-white/0.5"
+          >
             Regenerate
           </Button>
         </div>
