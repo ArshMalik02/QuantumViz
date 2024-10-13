@@ -31,22 +31,20 @@ def split_html_into_chunks(html_content, max_chunk_size=10000):
 
     return chunks
 
-# Function to scroll to a specified image and take a screenshot of it
+# Function to scroll the PDF viewer inside shadow-root and take a screenshot
 
 
-# Function to scroll the PDF and take a screenshot
-def scroll_pdf_and_screenshot(driver, scroll_height, screenshot_path):
+def scroll_and_screenshot(driver, scroll_height, screenshot_path):
     try:
-        # Use JavaScript to scroll within the PDF viewer
+        # Use JavaScript to scroll the window
         driver.execute_script(f"window.scrollTo(0, {scroll_height});")
         time.sleep(2)  # Wait for the scroll to take effect
 
         # Take a screenshot of the currently visible area
         driver.save_screenshot(screenshot_path)
-        print(
-            f"Screenshot of PDF at scroll height {scroll_height} saved to {screenshot_path}")
+        print(f"Screenshot saved to {screenshot_path}")
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error while scrolling and taking screenshot: {e}")
 
 
 class GoogleSearchSpider(Spider):
@@ -205,7 +203,8 @@ class GoogleSearchSpider(Spider):
             # Replace with the correct XPath of the image
             # image_xpath = "//img[@alt='example_image']"
             # Scroll by 1000 pixels and take a screenshot
-            scroll_pdf_and_screenshot(driver, 1000, "pdf_screenshot.png")
+            # Scroll down by 1000px and save screenshot
+            scroll_and_screenshot(driver, 1000, "screenshot1.png")
 
         except Exception as e:
             print(f"Error: {e}")
