@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Mic, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
+import micIcon from '@/public/mic.png';  // Import the mic icon
 
 interface ExpandableTextareaWithButtonsProps {
   placeholder: string;
@@ -10,6 +12,7 @@ interface ExpandableTextareaWithButtonsProps {
   onMic: () => void;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  isTranscribing?: boolean;
 }
 
 export function ExpandableTextareaWithButtons({
@@ -17,7 +20,8 @@ export function ExpandableTextareaWithButtons({
   onGenerate,
   onMic,
   value,
-  onChange
+  onChange,
+  isTranscribing = false,
 }: ExpandableTextareaWithButtonsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -119,7 +123,13 @@ export function ExpandableTextareaWithButtons({
           onClick={onMic}
           className="bg-transparent hover:bg-gray-700 text-gray-400 p-1 sm:p-2 rounded-full"
         >
-          <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
+          <Image
+            src={micIcon}
+            alt="Microphone"
+            width={20}
+            height={20}
+            className="w-4 h-4 sm:w-5 sm:h-5"
+          />
         </Button>
         <Button
           onClick={handleGenerate}

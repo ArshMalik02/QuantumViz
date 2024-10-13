@@ -2,19 +2,20 @@
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Mic, Sparkles, Square } from "lucide-react";
+import { Mic, Sparkles } from "lucide-react";
 import logo from "@/public/logo.png";
 import leftNet from "@/public/left_net.png";
 import rightNet from "@/public/right_net.png";
 import leftLight from "@/public/left_light.png";
 import rightLight from "@/public/right_light.png";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import QuantumCircuit from "@/app/components/QuantumCircuit";
 import CodeSnippet from "@/app/components/CodeSnippet";
 
 import { ExpandableTextareaWithButtons } from "@/app/components/ExpandableTextareaWithButtons";
 import QuantumVisualization from "./components/QuantumVisualization";
 import { QuirkyChat } from "@/app/components/QuirkyChat";
+import micIcon from '@/public/mic.png';
 
 export default function Home() {
   const [apiResponse, setApiResponse] = useState<JSON | null>(null);
@@ -24,6 +25,7 @@ export default function Home() {
   const [recordingTime, setRecordingTime] = useState(0);
   const [transcription, setTranscription] = useState("");
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [isTranscribing, setIsTranscribing] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -83,16 +85,21 @@ export default function Home() {
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
 
+      let audioChunks: Blob[] = [];
+
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
-          setAudioChunks(chunks => [...chunks, event.data]);
+          audioChunks.push(event.data);
         }
       };
 
-      mediaRecorder.start(1000); // Collect data every second
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        await transcribeAudio(audioBlob);
+      };
+
+      mediaRecorder.start();
       setIsRecording(true);
-      setRecordingTime(0);
-      visualizeAudio(stream);
     } catch (error) {
       console.error('Error accessing microphone:', error);
     }
@@ -102,76 +109,12 @@ export default function Home() {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
     }
   };
 
-  const visualizeAudio = (stream: MediaStream) => {
-    const audioContext = new AudioContext();
-    const source = audioContext.createMediaStreamSource(stream);
-    const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 256;
-    source.connect(analyser);
-
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const canvasCtx = canvas.getContext('2d');
-    if (!canvasCtx) return;
-
-    const draw = () => {
-      animationFrameRef.current = requestAnimationFrame(draw);
-      analyser.getByteTimeDomainData(dataArray);
-
-      canvasCtx.fillStyle = 'rgb(0, 0, 0)';
-      canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-
-      canvasCtx.lineWidth = 2;
-      canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
-      canvasCtx.beginPath();
-
-      const sliceWidth = canvas.width * 1.0 / bufferLength;
-      let x = 0;
-
-      for (let i = 0; i < bufferLength; i++) {
-        const v = dataArray[i] / 128.0;
-        const y = v * canvas.height / 2;
-
-        if (i === 0) {
-          canvasCtx.moveTo(x, y);
-        } else {
-          canvasCtx.lineTo(x, y);
-        }
-
-        x += sliceWidth;
-      }
-
-      canvasCtx.lineTo(canvas.width, canvas.height / 2);
-      canvasCtx.stroke();
-    };
-
-    draw();
-  };
-
-  const transcribeAudio = async () => {
-    if (audioChunks.length === 0) {
-      console.error('No audio data available');
-      return;
-    }
-
-    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-    console.log('Audio blob size:', audioBlob.size);
-
-    // Add this: Create an audio element and play the recorded audio
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audio = new Audio(audioUrl);
-    audio.play();
-
+  const transcribeAudio = async (audioBlob: Blob) => {
+    setIsTranscribing(true);
     const reader = new FileReader();
     reader.readAsDataURL(audioBlob);
     reader.onloadend = async () => {
@@ -202,12 +145,13 @@ export default function Home() {
         setTranscription(`An error occurred while transcribing the audio: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     };
+    setIsTranscribing(false);
   };
 
   // Call transcribeAudio after stopping the recording
   useEffect(() => {
     if (!isRecording && audioChunks.length > 0) {
-      transcribeAudio();
+      transcribeAudio(new Blob(audioChunks, { type: 'audio/wav' }));
     }
   }, [isRecording, audioChunks]);
 
@@ -215,7 +159,7 @@ export default function Home() {
     <div className="min-h-screen bg-black text-white flex flex-col relative overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-pink-600/20 via-transparent to-orange-600/20" />
-
+      
       {/* Left network and light images */}
       <div className="absolute left-0 bottom-0 w-1/4 h-1/2">
         <Image
@@ -237,7 +181,7 @@ export default function Home() {
           priority
         />
       </div>
-
+      
       {/* Right network and light images */}
       <div className="absolute right-0 top-0 w-1/4 h-1/2">
         <Image
@@ -259,25 +203,30 @@ export default function Home() {
           priority
         />
       </div>
-
+      
       {/* Header */}
       <header className="flex items-center p-8 z-10">
-        <Image src={logo} alt="QuantumViz Logo" width={40} height={40} />
+        <Image
+          src={logo}
+          alt="QuantumViz Logo"
+          width={40}
+          height={40}
+        />
       </header>
-
+      
       {/* Main content */}
       <main className="flex-grow flex flex-col items-center justify-center z-10 px-4 -mt-20">
         <div className="text-center mb-12">
           <h1 className="mb-2 text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold bg-gradient-to-r from-pink-500 to-orange-500 text-transparent bg-clip-text">
             QuantumViz
           </h1>
-          <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-300">
+          <p className="text-2xl text-gray-300">
             Your ideas, transformed into quantum circuits
           </p>
         </div>
         {isRecording ? (
           <div className="w-full max-w-2xl">
-            <canvas ref={canvasRef} className="w-full h-24 bg-gray-800 rounded-lg mb-4" />
+            {/* <canvas ref={canvasRef} className="w-full h-24 bg-gray-800 rounded-lg mb-4" /> */}
             <div className="flex justify-between items-center">
               <div className="relative w-full h-2 bg-gray-700 rounded-full overflow-hidden">
                 <div 
@@ -288,7 +237,7 @@ export default function Home() {
               <p className="ml-4 text-lg">{recordingTime}s / 15s</p>
             </div>
             <Button onClick={stopRecording} variant="destructive" className="mt-4 w-full">
-              <Square className="mr-2 h-4 w-4" /> Stop Recording
+              Stop Recording
             </Button>
           </div>
         ) : (
@@ -298,6 +247,16 @@ export default function Home() {
             onMic={startRecording}
             value={transcription}
             onChange={(e) => setTranscription(e.target.value)}
+            isTranscribing={isTranscribing}
+            micIcon={
+              <Image
+                src={micIcon}
+                alt="Microphone"
+                width={20}
+                height={20}
+                className="w-4 h-4 sm:w-5 sm:h-5"
+              />
+            }
           />
         )}
       </main>
@@ -312,14 +271,12 @@ export default function Home() {
           </div>
         </section>
       )}
-      {/* {codeApiResponse && (
-        <CodeSnippet code={codeApiResponse.code} />
-      )} */}
       {codeApiResponse && (
-        <div className="mr-12">
-          <QuantumVisualization code={codeApiResponse.code} htmlFiles={codeApiResponse.html_files} />
-        </div>
+        <CodeSnippet code={codeApiResponse.code} />
+      )}
+      {codeApiResponse && (
+        <QuantumVisualization code={codeApiResponse.code} htmlFiles={codeApiResponse.html_files} />
       )}
     </div>
-  );
+  )
 }
