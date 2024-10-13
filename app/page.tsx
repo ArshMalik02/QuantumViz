@@ -10,9 +10,8 @@ import leftLight from "@/public/left_light.png";
 import rightLight from "@/public/right_light.png";
 import { useState } from "react";
 import QuantumCircuit from "@/app/components/QuantumCircuit";
-
-
 import { ExpandableTextareaWithButtons } from "@/app/components/ExpandableTextareaWithButtons";
+import { QuirkyChat } from "@/app/components/QuirkyChat";
 
 export default function Home() {
   const [apiResponse, setApiResponse] = useState<string | null>(null);
@@ -110,6 +109,9 @@ export default function Home() {
           }}
         />
       </main>
+
+      {/* Quirky Chat */}
+      <QuirkyChat />
 
       {apiResponse && (
         <section id="quantum-circuit" className="w-full py-16 z-10">
