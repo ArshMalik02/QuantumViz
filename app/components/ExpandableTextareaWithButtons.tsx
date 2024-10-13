@@ -40,24 +40,25 @@ export function ExpandableTextareaWithButtons({
   };
 
   return (
-    <div ref={containerRef} className="relative w-1/2">
+    <div ref={containerRef} className="relative w-full sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-2/5">
       <textarea
         ref={textareaRef}
         value={value}
         onChange={handleChange}
         placeholder={placeholder}
-        className="w-full placeholder-vertical-center bg-gray-800/60 border-gray-700 text-white pl-4 pr-36 py-2 rounded-md text-lg placeholder-white overflow-hidden resize-none"
+        className="w-full placeholder-vertical-center bg-gray-800/60 border-gray-700 text-white pl-4 pr-24 sm:pr-28 py-2 rounded-md text-sm sm:text-base md:text-lg placeholder-white overflow-hidden resize-none"
       />
       <div className="absolute right-2 bottom-2 flex items-center space-x-2 mb-2">
         <Button
           onClick={onMic}
-          className="bg-transparent hover:bg-gray-700 text-gray-400 p-2 rounded-full"
+          className="bg-transparent hover:bg-gray-700 text-gray-400 p-1 sm:p-2 rounded-full"
         >
-          <Mic className="text-gray-400 " size={20} />
+          {/* <Mic className="text-gray-400 sm:size-" size={16}  /> */}
+          <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
         </Button>
         <Button
           onClick={onGenerate}
-          className="bg-gradient-to-r from-pink-500 to-orange-500 text-white px-3 py-1 rounded-md flex items-center space-x-1 text-sm"
+          className="bg-gradient-to-r from-pink-500 to-orange-500 text-white px-2 sm:px-3 py-1 rounded-md flex items-center space-x-1 text-xs sm:text-sm"
         >
           <span>Generate</span>
           <Sparkles size={14} />

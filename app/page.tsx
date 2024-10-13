@@ -8,6 +8,7 @@ import leftNet from "@/public/left_net.png";
 import rightNet from "@/public/right_net.png";
 import leftLight from "@/public/left_light.png";
 import rightLight from "@/public/right_light.png";
+import QuantumCircuit from "@/app/components/QuantumCircuit";
 
 import { ExpandableTextareaWithButtons } from "@/app/components/ExpandableTextareaWithButtons";
 
@@ -69,24 +70,25 @@ export default function Home() {
       {/* Main content */}
       <main className="flex-grow flex flex-col items-center justify-center z-10 px-4 -mt-20">
         <div className="text-center mb-12">
-          <h1 className="text-7xl sm:text-8xl font-bold mb-10 bg-gradient-to-r from-pink-500 to-orange-500 text-transparent bg-clip-text">
+          <h1 className="mb-2 text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold">
             QuantumViz
           </h1>
-          <p className="text-2xl sm:text-3xl text-gray-300">
+          <p className="text-sm sm:text-lg md:text-2xl lg:text-3xl text-gray-300">
             Your ideas, transformed into quantum circuits
           </p>
         </div>
         <ExpandableTextareaWithButtons
-            placeholder="Describe your circuit here..."
-            onGenerate={() => {
-              // Add your generate logic here
-              console.log("Generate button clicked");
-            }}
-            onMic={() => {
-              // Add your mic logic here
-              console.log("Mic button clicked");
-            }}
-          />
+          placeholder="Describe your circuit here..."
+          onGenerate={() => {
+            // Add your generate logic here
+            console.log("Generate button clicked");
+          }}
+          onMic={() => {
+            // Add your mic logic here
+            console.log("Mic button clicked");
+          }}
+        />
+        {/* <QuantumCircuit /> */}
       </main>
     </div>
   );
