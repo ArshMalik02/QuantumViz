@@ -15,10 +15,37 @@ import CodeSnippet from "@/app/components/CodeSnippet";
 import { ExpandableTextareaWithButtons } from "@/app/components/ExpandableTextareaWithButtons";
 import QuantumVisualization from "./components/QuantumVisualization";
 import { QuirkyChat } from "@/app/components/QuirkyChat";
+import micIcon from '@/public/mic.png';
 
 export default function Home() {
   const [apiResponse, setApiResponse] = useState<JSON | null>(null);
   const [codeApiResponse, setCodeApiResponse] = useState<JSON | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioData, setAudioData] = useState<Blob | null>(null);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [transcription, setTranscription] = useState("");
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isRecording) {
+      interval = setInterval(() => {
+        setRecordingTime((prevTime) => {
+          if (prevTime >= 15) {
+            stopRecording();
+            return 15;
+          }
+          return prevTime + 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isRecording]);
   const handleGenerate = async (input: string) => {
     try {
       const response = await fetch('http://localhost:8080/process-prompt', {
@@ -58,16 +85,21 @@ export default function Home() {
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
 
+      let audioChunks: Blob[] = [];
+
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
-          setAudioChunks(chunks => [...chunks, event.data]);
+          audioChunks.push(event.data);
         }
       };
 
-      mediaRecorder.start(1000); // Collect data every second
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        await transcribeAudio(audioBlob);
+      };
+
+      mediaRecorder.start();
       setIsRecording(true);
-      setRecordingTime(0);
-      visualizeAudio(stream);
     } catch (error) {
       console.error('Error accessing microphone:', error);
     }
@@ -77,76 +109,12 @@ export default function Home() {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
     }
   };
 
-  const visualizeAudio = (stream: MediaStream) => {
-    const audioContext = new AudioContext();
-    const source = audioContext.createMediaStreamSource(stream);
-    const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 256;
-    source.connect(analyser);
-
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const canvasCtx = canvas.getContext('2d');
-    if (!canvasCtx) return;
-
-    const draw = () => {
-      animationFrameRef.current = requestAnimationFrame(draw);
-      analyser.getByteTimeDomainData(dataArray);
-
-      canvasCtx.fillStyle = 'rgb(0, 0, 0)';
-      canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-
-      canvasCtx.lineWidth = 2;
-      canvasCtx.strokeStyle = 'rgb(255, 255, 255)';
-      canvasCtx.beginPath();
-
-      const sliceWidth = canvas.width * 1.0 / bufferLength;
-      let x = 0;
-
-      for (let i = 0; i < bufferLength; i++) {
-        const v = dataArray[i] / 128.0;
-        const y = v * canvas.height / 2;
-
-        if (i === 0) {
-          canvasCtx.moveTo(x, y);
-        } else {
-          canvasCtx.lineTo(x, y);
-        }
-
-        x += sliceWidth;
-      }
-
-      canvasCtx.lineTo(canvas.width, canvas.height / 2);
-      canvasCtx.stroke();
-    };
-
-    draw();
-  };
-
-  const transcribeAudio = async () => {
-    if (audioChunks.length === 0) {
-      console.error('No audio data available');
-      return;
-    }
-
-    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-    console.log('Audio blob size:', audioBlob.size);
-
-    // Add this: Create an audio element and play the recorded audio
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audio = new Audio(audioUrl);
-    audio.play();
-
+  const transcribeAudio = async (audioBlob: Blob) => {
+    setIsTranscribing(true);
     const reader = new FileReader();
     reader.readAsDataURL(audioBlob);
     reader.onloadend = async () => {
@@ -177,12 +145,13 @@ export default function Home() {
         setTranscription(`An error occurred while transcribing the audio: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     };
+    setIsTranscribing(false);
   };
 
   // Call transcribeAudio after stopping the recording
   useEffect(() => {
     if (!isRecording && audioChunks.length > 0) {
-      transcribeAudio();
+      transcribeAudio(new Blob(audioChunks, { type: 'audio/wav' }));
     }
   }, [isRecording, audioChunks]);
 
@@ -268,7 +237,7 @@ export default function Home() {
               <p className="ml-4 text-lg">{recordingTime}s / 15s</p>
             </div>
             <Button onClick={stopRecording} variant="destructive" className="mt-4 w-full">
-              <Square className="mr-2 h-4 w-4" /> Stop Recording
+              Stop Recording
             </Button>
           </div>
         ) : (
@@ -278,6 +247,16 @@ export default function Home() {
             onMic={startRecording}
             value={transcription}
             onChange={(e) => setTranscription(e.target.value)}
+            isTranscribing={isTranscribing}
+            micIcon={
+              <Image
+                src={micIcon}
+                alt="Microphone"
+                width={20}
+                height={20}
+                className="w-4 h-4 sm:w-5 sm:h-5"
+              />
+            }
           />
         )}
       </main>
