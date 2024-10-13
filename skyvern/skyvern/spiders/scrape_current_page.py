@@ -335,6 +335,106 @@ def run_spiders(html_content, current_url):
     reactor.stop()
 
 
+def generate_plan():
+    gpt_api_url = "https://api.openai.com/v1/chat/completions"
+    API_KEY = "sk-BNdvCRikKICPEExsB2CPmalokbd3KsamRsr2IsUTNqT3BlbkFJr6M1SBUtQjokSAgG8RGjaqjbHdkX0twdsRxEuxNxEA"
+
+    prompt = f"You are Planner GPT. generate me a plan find the quantum research paper: 'Classical simulation of quantum computation, the Gottesman-Knill theorem, and slightly beyond' and take a photo of the circuit image to upload to a custom site"
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {API_KEY}',
+    }
+
+    data = {
+        "model": "gpt-3.5-turbo",
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 100,
+    }
+
+    response = requests.post(gpt_api_url, headers=headers, json=data)
+
+    # Check for errors in the response
+    if response.status_code != 200:
+        print(f"Error {response.status_code}: {response.text}")
+        return
+
+    gpt_response = response.json()
+
+    # Check if 'choices' exists in the GPT response
+    if 'choices' not in gpt_response:
+        print(f"Unexpected response format: {gpt_response}")
+        return
+
+    # Extract the raw XPath from the GPT response, removing extra text
+    plan = gpt_response["choices"][0]["message"]["content"].strip()
+
+    print(f"Plan provided by GPT: {plan}")
+
+
+def send_chunk_to_gpt(self, html_chunk):
+    # GPT API call to find search bar XPath
+    gpt_api_url = "https://api.openai.com/v1/chat/completions"
+    API_KEY = "sk-BNdvCRikKICPEExsB2CPmalokbd3KsamRsr2IsUTNqT3BlbkFJr6M1SBUtQjokSAgG8RGjaqjbHdkX0twdsRxEuxNxEA"
+
+    # Prompt with guidance that the search bar is inside a <textarea> with class 'gLFyf'
+    prompt = f"Here is part {self.chunk_index + 1} of the HTML content:\n\n{html_chunk}\n\n" \
+             f"The search bar input field is bound by <textarea class='gLFyf'> in this HTML structure. " \
+             f"Please provide the raw XPath to the search bar (without explanations) in this part of the HTML structure."
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {API_KEY}',
+    }
+
+    data = {
+        "model": "gpt-3.5-turbo",
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 100,
+    }
+
+    response = requests.post(gpt_api_url, headers=headers, json=data)
+
+    # Check for errors in the response
+    if response.status_code != 200:
+        print(f"Error {response.status_code}: {response.text}")
+        return
+
+    gpt_response = response.json()
+
+    # Check if 'choices' exists in the GPT response
+    if 'choices' not in gpt_response:
+        print(f"Unexpected response format: {gpt_response}")
+        return
+
+    # Extract the raw XPath from the GPT response, removing extra text
+    xpath_search_bar = gpt_response["choices"][0]["message"]["content"].strip()
+
+    # Ensure we only get the actual XPath by checking for any markdown or explanation
+    if "```" in xpath_search_bar:
+        xpath_search_bar = xpath_search_bar.split("```")[1].strip()
+
+    print(
+        f"XPath for chunk {self.chunk_index + 1} provided by GPT: {xpath_search_bar}")
+
+    # Check if we found the search bar by validating the XPath format
+    if xpath_search_bar.startswith("//"):
+        print(f"Search bar found: {xpath_search_bar}")
+        self.search_bar_xpath = xpath_search_bar  # Save the valid XPath
+        google_search_url = "https://www.google.com"
+        yield Request(url=google_search_url, callback=self.input_search_term, meta={'xpath': xpath_search_bar})
+    else:
+        # Move to the next chunk if the search bar isn't found
+        self.chunk_index += 1
+        if self.chunk_index < len(self.html_chunks):
+            # Recursively call the next chunk
+            yield from self.send_chunk_to_gpt(self.html_chunks[self.chunk_index])
+        else:
+            # Handle case when search bar is not found
+            print("Search bar was not found in any of the HTML chunks.")
+            self.handle_search_bar_not_found()
+
+
 def main():
     # Delete the previous output.csv file if it exists
     csv_file_path = 'output.csv'
@@ -365,6 +465,8 @@ def main():
 
     # Close the browser
     driver.quit()
+
+    generate_plan()
 
     # Set up and run Scrapy to process the extracted data
     run_spiders(html_content, current_url)
