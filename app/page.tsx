@@ -8,13 +8,13 @@ import leftNet from "@/public/left_net.png";
 import rightNet from "@/public/right_net.png";
 import leftLight from "@/public/left_light.png";
 import rightLight from "@/public/right_light.png";
-import { useState } from "react";
-import QuantumCircuit from "@/app/components/QuantumCircuit";
-import CodeSnippet from "@/app/components/CodeSnippet";
+import { useEffect, useRef, useState } from "react";
+import QuantumCircuit from "@/components/QuantumCircuit";
+import CodeSnippet from "@/components/CodeSnippet";
 
-import { ExpandableTextareaWithButtons } from "@/app/components/ExpandableTextareaWithButtons";
-import QuantumVisualization from "./components/QuantumVisualization";
-import { QuirkyChat } from "@/app/components/QuirkyChat";
+import { ExpandableTextareaWithButtons } from "@/components/ExpandableTextareaWithButtons";
+import QuantumVisualization from "@/components/QuantumVisualization";
+import { QuirkyChat } from "@/components/QuirkyChat";
 import micIcon from '@/public/mic.png';
 
 export default function Home() {
@@ -30,6 +30,8 @@ export default function Home() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+
+  const [htmlContent, setHtmlContent] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -73,6 +75,15 @@ export default function Home() {
       const codeData = await codeResponse.json();
       console.log(codeData);
       setCodeApiResponse(codeData);
+
+      // Parse the HTML content from the response
+      if (codeData.html_files) {
+        const parsedHtmlContent: { [key: string]: string } = {};
+        for (const [filename, content] of Object.entries(codeData.html_files)) {
+          parsedHtmlContent[filename] = content as string;
+        }
+        setHtmlContent(parsedHtmlContent);
+      }
     } catch (error) {
       console.error('Error:', error);
       setApiResponse('An error occurred while processing your request.');
@@ -275,7 +286,10 @@ export default function Home() {
         <CodeSnippet code={codeApiResponse.code} />
       )}
       {codeApiResponse && (
-        <QuantumVisualization code={codeApiResponse.code} htmlFiles={codeApiResponse.html_files} />
+        <QuantumVisualization 
+          code={codeApiResponse.code} 
+          htmlContent={htmlContent}
+        />
       )}
     </div>
   )
