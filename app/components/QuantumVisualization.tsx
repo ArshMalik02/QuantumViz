@@ -15,8 +15,8 @@ export default function QuantumVisualization({ code, htmlFiles }: QuantumVisuali
         <CodeSnippet code={code} />
       </div>
       <div className="w-full md:w-1/2 flex flex-col gap-4">
-        <HTMLEmbed htmlFile={htmlFiles[0]} />
-        <HTMLEmbed htmlFile={htmlFiles[1]} />
+        <HTMLEmbed htmlContent={htmlFiles[0]} />
+        <HTMLEmbed htmlContent={htmlFiles[1]} />
       </div>
     </div>
   )
