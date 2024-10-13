@@ -8,7 +8,9 @@ from selenium.webdriver.chrome.options import Options
 import requests
 from twisted.internet import reactor, defer
 
-# Function to split HTML into chunks
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
 def split_html_into_chunks(html_content, max_chunk_size=10000):
@@ -134,6 +136,51 @@ class GoogleSearchSpider(Spider):
 
         # Submit the form (simulate hitting 'Enter')
         search_bar.submit()
+
+        # Wait for the search results page to load
+        time.sleep(3)
+
+        # Find the first search result and click it
+        # XPath to the first result's link
+        first_result_xpath = "(//h3)[1]/ancestor::a"
+        first_result = driver.find_element_by_xpath(first_result_xpath)
+        first_result.click()
+
+        # Wait for the arXiv page to load
+        time.sleep(3)
+
+        # Now on the arXiv website, locate the search bar for papers using the correct <input> element
+        arxiv_search_bar_xpath = "//input[@class='input is-small'][@type='text'][@name='query']"
+
+        try:
+            # Use WebDriverWait to wait for the search bar to be present
+            arxiv_search_bar = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located(
+                    (By.XPATH, arxiv_search_bar_xpath))
+            )
+            # Input the full paper title "Classical simulation of quantum computation, the Gottesman-Knill theorem, and slightly beyond"
+            paper_title = "Classical simulation of quantum computation, the Gottesman-Knill theorem, and slightly beyond"
+            arxiv_search_bar.send_keys(paper_title)
+
+            # Submit the search form (simulate hitting 'Enter')
+            # Unicode for the 'Enter' key to submit the form
+            arxiv_search_bar.send_keys(u'\ue007')
+            print(f"Successfully searched for '{paper_title}' on arXiv.")
+
+            # Wait for the search results page to load
+            time.sleep(3)
+
+            # Find the first link with the text 'pdf' that links to the PDF version of the paper
+            pdf_link_xpath = "(//a[contains(@href, '/pdf/') and text()='pdf'])[1]"
+            pdf_link = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, pdf_link_xpath))
+            )
+            pdf_link.click()  # Click the link to open the PDF
+
+            print("Successfully clicked the PDF link for the paper on arXiv.")
+
+        except Exception as e:
+            print(f"Error: {e}")
 
         # Wait to observe the result before closing
         time.sleep(10)  # Wait for 10 seconds so you can see the result
