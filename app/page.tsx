@@ -1,20 +1,12 @@
-"use client";
-import Image from "next/image";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Mic, Sparkles, Square } from "lucide-react";
-import logo from "@/public/logo.png";
-import leftNet from "@/public/left_net.png";
-import rightNet from "@/public/right_net.png";
-import leftLight from "@/public/left_light.png";
-import rightLight from "@/public/right_light.png";
-import { useState, useRef, useEffect } from "react";
-import QuantumCircuit from "@/app/components/QuantumCircuit";
-import CodeSnippet from "@/app/components/CodeSnippet";
-
-import { ExpandableTextareaWithButtons } from "@/app/components/ExpandableTextareaWithButtons";
-import QuantumVisualization from "./components/QuantumVisualization";
-import { QuirkyChat } from "@/app/components/QuirkyChat";
+import Image from "next/image"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Mic, Sparkles } from "lucide-react"
+import logo from "@/public/logo.png"
+import leftNet from "@/public/left_net.png"
+import rightNet from "@/public/right_net.png"
+import leftLight from "@/public/left_light.png"
+import rightLight from "@/public/right_light.png"
 
 export default function Home() {
   const [apiResponse, setApiResponse] = useState<JSON | null>(null);
@@ -215,7 +207,7 @@ export default function Home() {
     <div className="min-h-screen bg-black text-white flex flex-col relative overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-pink-600/20 via-transparent to-orange-600/20" />
-
+      
       {/* Left network and light images */}
       <div className="absolute left-0 bottom-0 w-1/4 h-1/2">
         <Image
@@ -237,7 +229,7 @@ export default function Home() {
           priority
         />
       </div>
-
+      
       {/* Right network and light images */}
       <div className="absolute right-0 top-0 w-1/4 h-1/2">
         <Image
@@ -259,67 +251,43 @@ export default function Home() {
           priority
         />
       </div>
-
+      
       {/* Header */}
       <header className="flex items-center p-8 z-10">
-        <Image src={logo} alt="QuantumViz Logo" width={40} height={40} />
+        <Image
+          src={logo}
+          alt="QuantumViz Logo"
+          width={40}
+          height={40}
+        />
       </header>
-
+      
       {/* Main content */}
-      <main className="flex-grow flex flex-col items-center justify-center z-10 px-4 -mt-20">
-        <div className="text-center mb-12">
-          <h1 className="mb-2 text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold bg-gradient-to-r from-pink-500 to-orange-500 text-transparent bg-clip-text">
+      <main className="flex-grow flex flex-col items-center justify-center z-10 px-4">
+        <div className="text-center mb-8">
+          <h1 className="text-[7rem] font-bold mb-4 bg-gradient-to-r from-pink-500 to-orange-500 text-transparent bg-clip-text">
             QuantumViz
           </h1>
-          <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-300">
+          <p className="text-2xl text-gray-300">
             Your ideas, transformed into quantum circuits
           </p>
         </div>
-        {isRecording ? (
-          <div className="w-full max-w-2xl">
-            <canvas ref={canvasRef} className="w-full h-24 bg-gray-800 rounded-lg mb-4" />
-            <div className="flex justify-between items-center">
-              <div className="relative w-full h-2 bg-gray-700 rounded-full overflow-hidden">
-                <div 
-                  className="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-1000 ease-linear"
-                  style={{ width: `${(recordingTime / 15) * 100}%` }}
-                />
-              </div>
-              <p className="ml-4 text-lg">{recordingTime}s / 15s</p>
-            </div>
-            <Button onClick={stopRecording} variant="destructive" className="mt-4 w-full">
-              <Square className="mr-2 h-4 w-4" /> Stop Recording
-            </Button>
+        
+        <div className="w-full max-w-2xl flex items-center space-x-2">
+          <div className="relative flex-grow">
+            <Input
+              type="text"
+              placeholder="Describe your circuit here..."
+              className="w-full bg-gray-800/60 border-gray-700 text-white pl-4 pr-10 py-3 rounded-l-full"
+            />
+            <Mic className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" size={20} />
           </div>
-        ) : (
-          <ExpandableTextareaWithButtons
-            placeholder="Describe your circuit here..."
-            onGenerate={handleGenerate}
-            onMic={startRecording}
-            value={transcription}
-            onChange={(e) => setTranscription(e.target.value)}
-          />
-        )}
-      </main>
-
-      {/* Quirky Chat */}
-      <QuirkyChat />
-
-      {apiResponse && (
-        <section id="quantum-circuit" className="w-full py-16 z-10">
-          <div className="container mx-auto">
-            <QuantumCircuit circuitEmbedUrl={apiResponse} />
-          </div>
-        </section>
-      )}
-      {/* {codeApiResponse && (
-        <CodeSnippet code={codeApiResponse.code} />
-      )} */}
-      {codeApiResponse && (
-        <div className="mr-12">
-          <QuantumVisualization code={codeApiResponse.code} htmlFiles={codeApiResponse.html_files} />
+          <Button className="bg-gradient-to-r from-pink-500 to-orange-500 text-white px-6 py-3 rounded-r-full flex items-center space-x-2">
+            <span>Generate</span>
+            <Sparkles size={20} />
+          </Button>
         </div>
-      )}
+      </main>
     </div>
-  );
+  )
 }

@@ -1,12 +1,14 @@
 import { Suspense } from 'react';
 import { Atom, Sparkles } from 'lucide-react';
-import { Section } from 'app/components/ui/section';
-import dynamic from 'next/dynamic';
+import { Highlight, themes } from 'prism-react-renderer';
+import ReactMarkdown from 'react-markdown';
+import Editor from 'react-simple-code-editor';
+import rehypeKatex from 'rehype-katex';
+import remarkMath from 'remark-math';
 
-const DynamicQuantumContent = dynamic(() => import('./QuantumContent'), {
-  ssr: false,
-  loading: () => <div>Loading...</div>,
-});
+import { Button } from '@/components/ui/button';
+import { Section } from '@/components/section';
+import { useState } from 'react';
 
 interface QuantumPageProps {
   tagline: string;
