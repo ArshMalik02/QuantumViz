@@ -1,41 +1,24 @@
-import Image from "next/image"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Mic, Sparkles } from "lucide-react"
-import logo from "@/public/logo.png"
-import leftNet from "@/public/left_net.png"
-import rightNet from "@/public/right_net.png"
-import leftLight from "@/public/left_light.png"
-import rightLight from "@/public/right_light.png"
+"use client";
+import Image from "next/image";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Mic, Sparkles } from "lucide-react";
+import logo from "@/public/logo.png";
+import leftNet from "@/public/left_net.png";
+import rightNet from "@/public/right_net.png";
+import leftLight from "@/public/left_light.png";
+import rightLight from "@/public/right_light.png";
+import { useState } from "react";
+import QuantumCircuit from "@/app/components/QuantumCircuit";
+import CodeSnippet from "@/app/components/CodeSnippet";
+
+import { ExpandableTextareaWithButtons } from "@/app/components/ExpandableTextareaWithButtons";
+import QuantumVisualization from "./components/QuantumVisualization";
+import { QuirkyChat } from "@/app/components/QuirkyChat";
 
 export default function Home() {
   const [apiResponse, setApiResponse] = useState<JSON | null>(null);
   const [codeApiResponse, setCodeApiResponse] = useState<JSON | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const [audioData, setAudioData] = useState<Blob | null>(null);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [transcription, setTranscription] = useState("");
-  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
-
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const animationFrameRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isRecording) {
-      interval = setInterval(() => {
-        setRecordingTime((prevTime) => {
-          if (prevTime >= 15) {
-            stopRecording();
-            return 15;
-          }
-          return prevTime + 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isRecording]);
   const handleGenerate = async (input: string) => {
     try {
       const response = await fetch('http://localhost:8080/process-prompt', {
@@ -263,9 +246,9 @@ export default function Home() {
       </header>
       
       {/* Main content */}
-      <main className="flex-grow flex flex-col items-center justify-center z-10 px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-[7rem] font-bold mb-4 bg-gradient-to-r from-pink-500 to-orange-500 text-transparent bg-clip-text">
+      <main className="flex-grow flex flex-col items-center justify-center z-10 px-4 -mt-20">
+        <div className="text-center mb-12">
+          <h1 className="mb-2 text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold bg-gradient-to-r from-pink-500 to-orange-500 text-transparent bg-clip-text">
             QuantumViz
           </h1>
           <p className="text-2xl text-gray-300">
@@ -282,12 +265,14 @@ export default function Home() {
             />
             <Mic className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer" size={20} />
           </div>
-          <Button className="bg-gradient-to-r from-pink-500 to-orange-500 text-white px-6 py-3 rounded-r-full flex items-center space-x-2">
-            <span>Generate</span>
-            <Sparkles size={20} />
-          </Button>
-        </div>
-      </main>
+        </section>
+      )}
+      {codeApiResponse && (
+        <CodeSnippet code={codeApiResponse.code} />
+      )}
+      {codeApiResponse && (
+        <QuantumVisualization code={codeApiResponse.code} htmlFiles={codeApiResponse.html_files} />
+      )}
     </div>
   )
 }
