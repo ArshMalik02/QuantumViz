@@ -6,16 +6,19 @@ import { Mic, Sparkles } from 'lucide-react';
 
 interface ExpandableTextareaWithButtonsProps {
   placeholder: string;
-  onGenerate: (input: string) => Promise<void>;
+  onGenerate: (input: string) => void;
   onMic: () => void;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 }
 
 export function ExpandableTextareaWithButtons({
   placeholder,
   onGenerate,
-  onMic
+  onMic,
+  value,
+  onChange
 }: ExpandableTextareaWithButtonsProps) {
-  const [value, setValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [apiResponse, setApiResponse] = useState<any>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -36,10 +39,6 @@ export function ExpandableTextareaWithButtons({
       }
     }
   }, [value]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setValue(e.target.value);
-  };
 
   const handleGenerate = async () => {
     setIsLoading(true);
@@ -70,7 +69,7 @@ export function ExpandableTextareaWithButtons({
       <textarea
         ref={textareaRef}
         value={value}
-        onChange={handleChange}
+        onChange={onChange}
         placeholder={placeholder}
         className="w-full placeholder-vertical-center bg-gray-800/60 border-gray-700 text-white pl-4 pr-24 sm:pr-28 py-2 rounded-md text-sm sm:text-base md:text-lg placeholder-white overflow-hidden resize-none"
       />
