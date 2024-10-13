@@ -277,7 +277,7 @@ export default function Home() {
         </div>
         {isRecording ? (
           <div className="w-full max-w-2xl">
-            <canvas ref={canvasRef} className="w-full h-24 bg-gray-800 rounded-lg mb-4" />
+            {/* <canvas ref={canvasRef} className="w-full h-24 bg-gray-800 rounded-lg mb-4" /> */}
             <div className="flex justify-between items-center">
               <div className="relative w-full h-2 bg-gray-700 rounded-full overflow-hidden">
                 <div 
