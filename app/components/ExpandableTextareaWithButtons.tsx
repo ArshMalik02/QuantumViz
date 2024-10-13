@@ -6,7 +6,7 @@ import { Mic, Sparkles } from 'lucide-react';
 
 interface ExpandableTextareaWithButtonsProps {
   placeholder: string;
-  onGenerate: () => void;
+  onGenerate: (input: string) => Promise<void>;
   onMic: () => void;
 }
 
@@ -16,6 +16,8 @@ export function ExpandableTextareaWithButtons({
   onMic
 }: ExpandableTextareaWithButtonsProps) {
   const [value, setValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiResponse, setApiResponse] = useState<any>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -39,6 +41,30 @@ export function ExpandableTextareaWithButtons({
     setValue(e.target.value);
   };
 
+  const handleGenerate = async () => {
+    setIsLoading(true);
+    try {
+      console.log('Sending value to backend:', value);
+      const response = await fetch('http://localhost:8080/process-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_prompt: value }),
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      setApiResponse(data);
+      // Call the onGenerate prop with the response data
+      await onGenerate(data);
+    } catch (error) {
+      console.error('Error:', error);
+      setApiResponse('An error occurred while processing your request.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div ref={containerRef} className="relative w-full sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-2/5">
       <textarea
@@ -53,15 +79,15 @@ export function ExpandableTextareaWithButtons({
           onClick={onMic}
           className="bg-transparent hover:bg-gray-700 text-gray-400 p-1 sm:p-2 rounded-full"
         >
-          {/* <Mic className="text-gray-400 sm:size-" size={16}  /> */}
           <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
         </Button>
         <Button
-          onClick={onGenerate}
+          onClick={handleGenerate}
+          disabled={isLoading}
           className="bg-gradient-to-r from-pink-500 to-orange-500 text-white px-2 sm:px-3 py-1 rounded-md flex items-center space-x-1 text-xs sm:text-sm"
         >
-          <span>Generate</span>
-          <Sparkles size={14} />
+          <span>{isLoading ? 'Generating...' : 'Generate'}</span>
+          <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
         </Button>
       </div>
     </div>

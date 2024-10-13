@@ -8,11 +8,36 @@ import leftNet from "@/public/left_net.png";
 import rightNet from "@/public/right_net.png";
 import leftLight from "@/public/left_light.png";
 import rightLight from "@/public/right_light.png";
+import { useState } from "react";
 import QuantumCircuit from "@/app/components/QuantumCircuit";
+
 
 import { ExpandableTextareaWithButtons } from "@/app/components/ExpandableTextareaWithButtons";
 
 export default function Home() {
+  const [apiResponse, setApiResponse] = useState<string | null>(null);
+
+  const handleGenerate = async (input: string) => {
+    try {
+      const response = await fetch('http://localhost:8080/process-prompt', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_prompt: input }),
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      console.log(data);
+      setApiResponse(data);
+    } catch (error) {
+      console.error('Error:', error);
+      setApiResponse('An error occurred while processing your request.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white flex flex-col relative overflow-hidden">
       {/* Background gradient */}
@@ -73,23 +98,26 @@ export default function Home() {
           <h1 className="mb-2 text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold">
             QuantumViz
           </h1>
-          <p className="text-sm sm:text-lg md:text-2xl lg:text-3xl text-gray-300">
+          <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-300">
             Your ideas, transformed into quantum circuits
           </p>
         </div>
         <ExpandableTextareaWithButtons
           placeholder="Describe your circuit here..."
-          onGenerate={() => {
-            // Add your generate logic here
-            console.log("Generate button clicked");
-          }}
+          onGenerate={handleGenerate}
           onMic={() => {
-            // Add your mic logic here
             console.log("Mic button clicked");
           }}
         />
-        {/* <QuantumCircuit /> */}
       </main>
+
+      {apiResponse && (
+        <section id="quantum-circuit" className="w-full py-16 z-10">
+          <div className="container mx-auto">
+            <QuantumCircuit circuitEmbedUrl={apiResponse} />
+          </div>
+        </section>
+      )}
     </div>
   );
 }
