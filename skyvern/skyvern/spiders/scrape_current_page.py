@@ -12,6 +12,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+# Function to split HTML into chunks
+
 
 def split_html_into_chunks(html_content, max_chunk_size=10000):
     chunks = []
@@ -28,6 +30,23 @@ def split_html_into_chunks(html_content, max_chunk_size=10000):
         chunks.append(current_chunk)
 
     return chunks
+
+# Function to scroll to a specified image and take a screenshot of it
+
+
+# Function to scroll the PDF and take a screenshot
+def scroll_pdf_and_screenshot(driver, scroll_height, screenshot_path):
+    try:
+        # Use JavaScript to scroll within the PDF viewer
+        driver.execute_script(f"window.scrollTo(0, {scroll_height});")
+        time.sleep(2)  # Wait for the scroll to take effect
+
+        # Take a screenshot of the currently visible area
+        driver.save_screenshot(screenshot_path)
+        print(
+            f"Screenshot of PDF at scroll height {scroll_height} saved to {screenshot_path}")
+    except Exception as e:
+        print(f"Error: {e}")
 
 
 class GoogleSearchSpider(Spider):
@@ -178,6 +197,15 @@ class GoogleSearchSpider(Spider):
             pdf_link.click()  # Click the link to open the PDF
 
             print("Successfully clicked the PDF link for the paper on arXiv.")
+
+            # Wait a bit for the page to load fully
+            time.sleep(5)
+
+            # Scroll to a specific image and take a screenshot
+            # Replace with the correct XPath of the image
+            # image_xpath = "//img[@alt='example_image']"
+            # Scroll by 1000 pixels and take a screenshot
+            scroll_pdf_and_screenshot(driver, 1000, "pdf_screenshot.png")
 
         except Exception as e:
             print(f"Error: {e}")
