@@ -25,4 +25,4 @@ QuantumViz is a quantum circuit generator that simplifies and enhances the proce
 - Integration with Existing Tools: We aim to integrate QuantumViz with established platforms like IBM’s quantum tools to address knowledge gaps. This integration will streamline the user experience, empowering users with a comprehensive set of features for effective circuit design
 
 
-*Developed with Arsh Malik, Aashman Rastogi, Howard Huang, and Claire Li for [Cerebral Hacks 2024](https://hack.cerebralbeach.com/). Checkout our devpost [here](https://devpost.com/software/quantumviz)*
+*Developed by Arsh Malik, Utkarsh Lal, Aashman Rastogi, Howard Huang, and Claire Li for [Cerebral Hacks 2024](https://hack.cerebralbeach.com/). Checkout our devpost [here](https://devpost.com/software/quantumviz)*
