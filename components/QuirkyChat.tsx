@@ -246,7 +246,9 @@ export function QuirkyChat() {
                     )}
                     <div className={cn(
                       'max-w-[80%] p-2 rounded-lg overflow-auto',
-                      message.isUser ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-200'
+                      message.isUser 
+                        ? 'bg-gradient-to-r from-[#E2487E] to-[#F27758] text-white' 
+                        : 'bg-gray-700 text-gray-200'
                     )}>
                       {message.isUser ? (
                         message.text

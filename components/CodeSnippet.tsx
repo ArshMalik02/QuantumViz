@@ -9,6 +9,14 @@ interface CodeSnippetProps {
   code: string;
 }
 
+function Toast({ message }: { message: string }) {
+  return (
+    <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50">
+      {message}
+    </div>
+  );
+}
+
 export default function CodeSnippet({ code }: CodeSnippetProps) {
   const [copied, setCopied] = useState(false);
 
@@ -46,33 +54,36 @@ export default function CodeSnippet({ code }: CodeSnippetProps) {
   }, [code]);
 
   return (
-    <Card className="bg-gray-900 text-white w-full max-w-2xl mx-auto mr-24">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">python</CardTitle>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={copyCode}
-          className="text-xs text-gray-400 hover:text-white"
-        >
-          {copied ? "Copied!" : "Copy Code"}
-        </Button>
-      </CardHeader>
-      <CardContent className="p-0">
-        <ScrollArea className="h-[300px] w-full rounded-md">
-          <SyntaxHighlighter
-            language="python"
-            style={theme}
-            customStyle={{
-              margin: 0,
-              padding: '1rem',
-              background: 'transparent',
-            }}
+    <>
+      <Card className="bg-gray-900 text-white w-full max-w-2xl mx-auto mr-24">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">python</CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={copyCode}
+            className="text-xs text-gray-400 hover:text-white"
           >
-            {code}
-          </SyntaxHighlighter>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+            {copied ? "Copied!" : "Copy Code"}
+          </Button>
+        </CardHeader>
+        <CardContent className="p-0">
+          <ScrollArea className="h-[1156px] w-full rounded-md">
+            <SyntaxHighlighter
+              language="python"
+              style={theme}
+              customStyle={{
+                margin: 0,
+                padding: '1rem',
+                background: 'transparent',
+              }}
+            >
+              {code}
+            </SyntaxHighlighter>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+      {copied && <Toast message="Code copied to clipboard!" />}
+    </>
   );
 }

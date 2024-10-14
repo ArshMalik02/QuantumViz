@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Mic, Sparkles } from "lucide-react";
-import logo from "@/public/logo.png";
+import run_logo from "@/public/run_logo.gif";
 import leftNet from "@/public/left_net.png";
 import rightNet from "@/public/right_net.png";
 import leftLight from "@/public/left_light.png";
@@ -218,7 +218,7 @@ export default function Home() {
       {/* Header */}
       <header className="flex items-center p-8 z-10">
         <Image
-          src={logo}
+          src={run_logo}
           alt="QuantumViz Logo"
           width={40}
           height={40}
@@ -282,14 +282,18 @@ export default function Home() {
           </div>
         </section>
       )}
-      {codeApiResponse && (
+      {/* {codeApiResponse && (
         <CodeSnippet code={codeApiResponse.code} />
-      )}
+      )} */}
       {codeApiResponse && (
-        <QuantumVisualization 
-          code={codeApiResponse.code} 
-          htmlContent={htmlContent}
-        />
+        <section className="w-full py-16 z-10 bg-black">
+          <div className="container mx-auto px-4">
+            <QuantumVisualization 
+              code={codeApiResponse.code} 
+              htmlContent={htmlContent}
+            />
+          </div>
+        </section>
       )}
     </div>
   )

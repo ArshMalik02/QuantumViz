@@ -8,10 +8,10 @@ interface QuantumVisualizationProps {
 }
 
 export default function QuantumVisualization({ code, htmlFiles }: QuantumVisualizationProps) {
-    console.log(htmlFiles);
+  console.log(htmlFiles);
   return (
     <div className="flex flex-col lg:flex-row gap-2 p-4 text-white ml-4 mr-4 sm:ml-10 sm:mr-6 md:ml-20 md:mr-8 lg:ml-20 lg:mr-12">
-      <div className="w-full lg:w-3/5 lg:h-[calc(100vh-2rem)] flex items-start">
+      <div className="w-full lg:w-3/5 lg:h-[calc(100vh-6rem)] flex items-start"> {/* Increase height by 3 times */}
         <div className="w-full h-full lg:h-auto overflow-auto">
           <CodeSnippet code={code} />
         </div>
