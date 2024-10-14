@@ -12,8 +12,6 @@ QuantumViz is a quantum circuit generator that simplifies and enhances the proce
 - Customized Chatbot: Conversational agent trained on the 100s of research papers and Circuit Documentation for code
 - Research Paper Parsing: QuantumViz also has the ability to automatically extract images of quantum circuits directly from arXiv and surf the web powered by plans crafted by our custom LLM and directly convert them into Qiskit code through our website. We use a combination of Selenium and Scrapy to navigate through links and figures within research papers to allow researchers to automatically screenshot and input those images onto the platform.
 
-![image](https://github.com/user-attachments/assets/77068391-04c9-4ee0-bbeb-096c2f672664)
-
 ## Endorsements
 
 - [Dr. Jens Palsberg](https://web.cs.ucla.edu/~palsberg/) (Quantum Computing Researcher, UCLA CS Faculty): “A more visual and intuitive method for designing quantum circuits would be a game-changer, especially if it allows us to visualize circuits in a multimodal way before even writing a line of code. This approach addresses a critical gap in the current tools, streamlining the design process significantly.”
